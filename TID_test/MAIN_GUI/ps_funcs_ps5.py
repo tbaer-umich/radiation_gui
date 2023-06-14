@@ -6,6 +6,8 @@ import sys
 import os 
 import scanf
 
+# connects to PSU at ADDR5
+## TODO: To find out if comm5 needs to be called at the beginning of every transaction
 def comm5(addr):
     addr = int(addr)
     rm = pyvisa.ResourceManager()
@@ -22,6 +24,8 @@ def comm5(addr):
         instq = gpib_inst5.query('INST:SEL?') 
         #print('INST:SEL: ', instq) 
 
+        ## WARNING: THIS STRING IS DIFFERNT STRING FOR BOTH PSU1 PSU2. 
+        # We believe this sets the voltage and current settings of the PSU
         appl = gpib_inst5.write('APPL 7.0, 2.0')
         #checking if the voltage and current were applied 
         applq = gpib_inst5.query('APPL?')

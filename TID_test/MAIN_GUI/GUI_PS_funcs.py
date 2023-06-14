@@ -115,12 +115,14 @@ class MyWindowPS(object):
         self.curr2_5 = []
         self.time_5 = []
         self.date_5 = []
+        # this is the identifcation string e.g. '3, ' to enusre that print statements go to the right place
         self.identifier = identifier
 
-        #tabs 
+        # This creates the overall power supply tab
         self.tabWidget = QtWidgets.QTabWidget(MainWindow)
         self.tabWidget.setGeometry(QtCore.QRect(20,20, 300,300))
 
+        #create adress tabs for both power supplies and set their geometry within the ps_tab
         self.tab_PS_1_addr8 = QtWidgets.QWidget(MainWindow)
         self.tabWidget.addTab(self.tab_PS_1_addr8, "PS1:Addr8")
         self.tab_PS_2_addr5 = QtWidgets.QWidget(MainWindow)
@@ -138,10 +140,12 @@ class MyWindowPS(object):
         self.logLayout.addWidget(self.textBrowser)
 
         #PS1:ADDR8 
+        ## TODO: What are these five layouts? What are these commands doing
         self.layoutWidget = QtWidgets.QWidget(self.tab_PS_1_addr8)
         self.layoutWidget.setGeometry(QtCore.QRect(30,70,200,150))
         self.layout = QtWidgets.QVBoxLayout(self.layoutWidget)
 
+        # This is the voltage and current display on the PS1 tab
         self.layoutWidget2 = QtWidgets.QWidget(self.tab_PS_1_addr8)
         self.layoutWidget2.setGeometry(QtCore.QRect(150,70,200,150))
         self.layout2 = QtWidgets.QVBoxLayout(self.layoutWidget2)
@@ -159,14 +163,17 @@ class MyWindowPS(object):
         self.layout5 = QtWidgets.QVBoxLayout(self.layoutWidget5)
 
         #PS2:ADDR5 
+        # This is the text for the current and voltage data
         self.layoutWidget12 = QtWidgets.QWidget(self.tab_PS_2_addr5)
         self.layoutWidget12.setGeometry(QtCore.QRect(30,70,200,150))
         self.layout12 = QtWidgets.QVBoxLayout(self.layoutWidget12)
 
+        # This is the voltage and current data istelf on the PS2 tab
         self.layoutWidget13 = QtWidgets.QWidget(self.tab_PS_2_addr5)
         self.layoutWidget13.setGeometry(QtCore.QRect(150,70,200,150))
         self.layout13 = QtWidgets.QVBoxLayout(self.layoutWidget13)
 
+        # This is the init power supply button
         self.layoutWidget14 = QtWidgets.QWidget(self.tab_PS_2_addr5)
         self.layoutWidget14.setGeometry(QtCore.QRect(50,-20,200,150))
         self.layout14 = QtWidgets.QVBoxLayout(self.layoutWidget14)
@@ -180,10 +187,12 @@ class MyWindowPS(object):
         self.layout16 = QtWidgets.QVBoxLayout(self.layoutWidget16)
 
         #MONITOR ON/OFF
+        # button that begins monitor_on worker
         self.layoutWidget10 = QtWidgets.QWidget(MainWindow)
         self.layoutWidget10.setGeometry(QtCore.QRect(30,310,150,150))
         self.layout10 = QtWidgets.QVBoxLayout(self.layoutWidget10)
 
+        # button that begins monitor_off worker
         self.layoutWidget11 = QtWidgets.QWidget(MainWindow)
         self.layoutWidget11.setGeometry(QtCore.QRect(170,310,150,150))
         self.layout11 = QtWidgets.QVBoxLayout(self.layoutWidget11)
@@ -206,14 +215,27 @@ class MyWindowPS(object):
         #self.layout9 = QtWidgets.QHBoxLayout(self.layoutWidget9)
         
         #plot layout PS5
+        # this is the voltage graph
         self.layoutWidget17 = QtWidgets.QWidget(MainWindow)
         self.layoutWidget17.setGeometry(QtCore.QRect(350, 300, 400, 250)) #690, 280, 370, 250
         self.layout17 = QtWidgets.QHBoxLayout(self.layoutWidget17)
 
+        # voltage graph for additional voltage output for the same PSU
         #self.layoutWidget18 = QtWidgets.QWidget(self)
         #self.layoutWidget18.setGeometry(QtCore.QRect(1050, 280, 370, 250))
         #self.layout18 = QtWidgets.QHBoxLayout(self.layoutWidget18)
 
+        # this is the current graph
+        self.layoutWidget17 = QtWidgets.QWidget(MainWindow)
+        self.layoutWidget17.setGeometry(QtCore.QRect(350, 300, 400, 250)) #690, 280, 370, 250
+        self.layout17 = QtWidgets.QHBoxLayout(self.layoutWidget17)
+
+        # current graph for additional current output for the same PSU
+        #self.layoutWidget18 = QtWidgets.QWidget(self)
+        #self.layoutWidget18.setGeometry(QtCore.QRect(1050, 280, 370, 250))
+        #self.layout18 = QtWidgets.QHBoxLayout(self.layoutWidget18)
+
+        # this is the current graph
         self.layoutWidget19 = QtWidgets.QWidget(MainWindow)
         self.layoutWidget19.setGeometry(QtCore.QRect(750, 300, 400, 250)) #350, 540, 370, 250
         self.layout19 = QtWidgets.QHBoxLayout(self.layoutWidget19)
@@ -241,6 +263,8 @@ class MyWindowPS(object):
         
 
         #IV labels PS2:ADDR5
+        # These labels format the text before the current and voltage data
+        # labeles 8-11 go to layout 12
         self.label8 = QtWidgets.QLabel(self.layoutWidget12)
         self.label8.setText("Voltage1 (V):")
         self.layout12.addWidget(self.label8)
@@ -296,10 +320,12 @@ class MyWindowPS(object):
         self.b1.setText("Init Power Supply")
         self.layout3.addWidget(self.b1)
         self.b1.clicked.connect(self.gpib)
-       
+
+        #This is the init power supply button 
         self.b6 = QtWidgets.QPushButton(self.layoutWidget14)
         self.b6.setText("Init Power Supply")
         self.layout14.addWidget(self.b6)
+        ## IMPORTANT: This sends a message to the power supply via gpib
         self.b6.clicked.connect(self.gpib_5)
 
         self.b2 = QtWidgets.QPushButton(self.layoutWidget4)
@@ -307,9 +333,11 @@ class MyWindowPS(object):
         self.layout4.addWidget(self.b2)
         self.b2.clicked.connect(self.pwr_on)
 
+        # This is PS ON button
         self.b7 = QtWidgets.QPushButton(self.layoutWidget15)
         self.b7.setText("PS ON")
         self.layout15.addWidget(self.b7)
+        ## IMPORTANT: This sends a message to turn on the power supply
         self.b7.clicked.connect(self.pwr_on_5)
 
         self.b3 = QtWidgets.QPushButton(self.layoutWidget5)
@@ -318,26 +346,33 @@ class MyWindowPS(object):
         self.b3.clicked.connect(self.pwr_off)
         self.b3.setEnabled(False)
 
+        # This is PS OFF button
         self.b8 = QtWidgets.QPushButton(self.layoutWidget16)
         self.b8.setText("PS OFF")
         self.layout16.addWidget(self.b8)
+        ## IMPORTANT: This sends a message to turn off the power supply
         self.b8.clicked.connect(self.pwr_off_5)
+        # This only allows PS OFF if it has been enabled
+        # TODO: The better way to do this is to dependent on whether it is on or off
         self.b8.setEnabled(False)
 
         self.b4 = QtWidgets.QPushButton(self.layoutWidget10)
         self.b4.setText("MONITOR ON")
         self.layout10.addWidget(self.b4)
+        # Begins background process that puls datat from the power supply and then distributes them to the graphs/displays/outputs that use it
         self.b4.clicked.connect(self.monitor_on)
         
         self.b5 = QtWidgets.QPushButton(self.layoutWidget11)
         self.b5.setText("MONITOR OFF")
         self.layout11.addWidget(self.b5)
+        # ends background process that puls datat from the power supply and then distributes them to the graphs/displays/outputs that use it
         self.b5.clicked.connect(self.monitor_off)
         self.b5.setEnabled(False)
 
         #pyqtgraph
         self.graphWidget = pg.PlotWidget()
         self.pen = pg.mkPen(color="k", width=2)
+        ## for graphing PS1:ADDR8 
         self.layout6.addWidget(self.graphWidget)
         self.graphWidget.setBackground('w')
         self.graphWidget.setTitle("PS1:ADDR8_CSM2 Volt1 vs Time (sec)", color="b", size="10pt")
@@ -374,6 +409,7 @@ class MyWindowPS(object):
         #self.graphWidget3.showGrid(x=True, y=True)
        
         #plot PS5
+        ## voltage plot
         self.graphWidget4 = pg.PlotWidget()
         self.layout17.addWidget(self.graphWidget4)
         self.graphWidget4.setBackground('w')
@@ -416,6 +452,7 @@ class MyWindowPS(object):
         #self.timer.timeout.connect(self.update_plot_data)
         #self.timer.start()
 
+    ## INIT POWER SUPPLY BUTTON
     def gpib_5(self, addr):
         self.gpib_inst5 = comm5('5')
         print(self.identifier+"Power supply 5 connected to GPIB")
@@ -532,6 +569,7 @@ class MyWindowPS(object):
             f.close()
         return
 
+    # Current and voltage information for PS1::ADDR8
     def label_func(self, par1, par2, par3, par4):
         print("Label GUI PS8")
         self.label4.setText("%.5f"%(par1))
@@ -544,6 +582,7 @@ class MyWindowPS(object):
         print(self.identifier+"PS 8 Curr2: "+"%.5f"%(par4))
         return par1, par2, par3, par4
 
+    # Current and voltage information for PS2::ADDR5
     def label5_func(self, val1, val2, val3, val4):
         print("Label GUI PS5")
         self.label12.setText("%.5f"%(val1))
