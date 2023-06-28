@@ -62,22 +62,22 @@ class MyWindow(QMainWindow):
 # In[ ]:
 
 
-def normalOutputWritten(self, text):
-        if len(text) > 24:
-            if text[21:24] == '0, ':
-                pass
-            elif text[21:24] == '1, ':
-                text = text[:21]+text[24:]+'\n'
-                self.csmui.textBrowser.moveCursor(QtGui.QTextCursor.End)
-                self.csmui.textBrowser.insertPlainText(text)
-                self.logfile = open('lansce_beamrun_CSM.txt', 'a')
-                self.logfile.write(text)
-            elif text[21:24] == '3, ':
-                text = text[:21] + text[24:] + '\n'
-                self.ps_tab_inst.textBrowser.moveCursor(QtGui.QTextCursor.End)
-                self.ps_tab_inst.textBrowser.insertPlainText(text)
-                self.logfile = open('lansce_beamrun_PowerSupply.txt', 'a')          #write data to log file
-                self.logfile.write(text)
+    def normalOutputWritten(self, text):
+            if len(text) > 24:
+                if text[21:24] == '0, ':
+                    pass
+                elif text[21:24] == '1, ':
+                    text = text[:21]+text[24:]+'\n'
+                    self.csmui.textBrowser.moveCursor(QtGui.QTextCursor.End)
+                    self.csmui.textBrowser.insertPlainText(text)
+                    self.logfile = open('lansce_beamrun_CSM.txt', 'a')
+                    self.logfile.write(text)
+                elif text[21:24] == '3, ':
+                    text = text[:21] + text[24:] + '\n'
+                    self.ps_tab_inst.textBrowser.moveCursor(QtGui.QTextCursor.End)
+                    self.ps_tab_inst.textBrowser.insertPlainText(text)
+                    self.logfile = open('lansce_beamrun_PowerSupply.txt', 'a')          #write data to log file
+                    self.logfile.write(text)
 
 
 # In[ ]:
