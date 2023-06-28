@@ -18,8 +18,7 @@ import sys
 import os
 
 #from ps_funcs import comm, PS_on, PS_off, IV_meas
-from ps_funcs_ps5 import comm5, PS_on5, PS_off5, IV_meas5
-from ps_funcs_ps8 import comm8, PS_on8, PS_off8, IV_meas8
+from ps_funcs import *
 import datetime 
 import time 
 #from matplotlib.backends.qt_compat import QtCore, QtWidgets 

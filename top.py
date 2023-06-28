@@ -16,7 +16,7 @@ import pyqtgraph as pg
 # miscellaneous modules
 import sys
 import os
-from GUI_PS_funcs import *
+from main_funcs import *
 from Ui_MainWindow import *
 from ETH_CMD_BASE import *
 
