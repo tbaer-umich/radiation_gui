@@ -103,6 +103,7 @@ class MyWindowPS(object):
         self.date_txt = 'BNL'
         self.condition_txt = 'beam_run'
         self.PS_CSM_csvname = 'CSM_' + self.date_txt + '_' + self.condition_txt + '.csv'
+        self.PS_CSM_txtname = 'CSM_' + self.date_txt + '_' + self.condition_txt + '.txt'
         return 
 
 
@@ -264,7 +265,7 @@ class MyWindowPS(object):
 
 
     def gpib(self, addr):								#PS connected to GPIB, comm
-          self.gpib_inst = comm('5') #input address?
+          self.gpib_inst = comm('5') #with user input, should be comm(addr)
           print(self.identifier+"Power supply __ connected to GPIB")
           with open(self.PS_CSM_txtname, "a") as f:
               dgpib = datetime.datetime.now().strftime("%d-%b-%Y %H:%M:%S")
