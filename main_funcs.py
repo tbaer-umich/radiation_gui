@@ -123,9 +123,12 @@ class MyWindowPS(object):
             self.tabWidget = QtWidgets.QTabWidget(MainWindow)
             self.tabWidget.setGeometry(QtCore.QRect(20,20, 300,300))
 
+            self.tab_details = QtWidgets.QWidget(MainWindow)
+            self.tabWidget.addTab(self.tab_details, "Details:")
+
             self.tab_PS = QtWidgets.QWidget(MainWindow)			#individual tabs for each PS
             self.tabWidget.addTab(self.tab_PS, "PS: ") #address) 
-            
+
             #PRINTOUT LAYOUT
             self.logLayoutWdiget = QtWidgets.QWidget(MainWindow)
             self.logLayoutWdiget.setGeometry(QtCore.QRect(20, 600, 1100, 200))  # (left, top, width, height)
@@ -138,6 +141,17 @@ class MyWindowPS(object):
             self.logLayout.addWidget(self.textBrowser)
             
             #PS 
+
+            num_label = QtWidgets.QLabel("Number of PS", self.tab_details)
+            num_label.setGeometry(QtCore.QRect(10,-50,200,150))
+            self.lineEdit_details = QtWidgets.QLineEdit(self.tab_details)
+            self.lineEdit_details.setGeometry(QtCore.QRect(110,10,150,30))
+            self.lineEdit_details.setMaxLength(12)
+            self.lineEdit_details.editingFinished.connect(self.addresses)
+            self.lineEdit_details.editingFinished.connect(lambda: self.print_str(self.identifier + 'Number of PS =' + \
+                                                                                            self.lineEdit_details.text()))
+            
+
             self.layoutWidget = QtWidgets.QWidget(self.tab_PS)
             self.layoutWidget.setGeometry(QtCore.QRect(30,70,200,150))
             self.layout = QtWidgets.QVBoxLayout(self.layoutWidget)
@@ -169,46 +183,30 @@ class MyWindowPS(object):
             
             #PLOT LAYOUT PS
             self.layoutWidget8 = QtWidgets.QWidget(MainWindow)
-            self.layoutWidget8.setGeometry(QtCore.QRect(350, 20, 400, 250))
+            self.layoutWidget8.setGeometry(QtCore.QRect(600, 10, 500, 300))
             self.layout8 = QtWidgets.QHBoxLayout(self.layoutWidget8)
 
             self.layoutWidget9 = QtWidgets.QWidget(MainWindow)
-            self.layoutWidget9.setGeometry(QtCore.QRect(750, 20, 400, 250)) #1050, 20, 370, 250
+            self.layoutWidget9.setGeometry(QtCore.QRect(600, 300, 500, 300)) #1050, 20, 370, 250
             self.layout9 = QtWidgets.QHBoxLayout(self.layoutWidget9)
             
             #IV labels PS
             self.label = QtWidgets.QLabel(self.layoutWidget)
-            self.label.setText("Voltage1 (V):")
-            self.layout.addWidget(self.label)
-
-            self.label1 = QtWidgets.QLabel(self.layoutWidget)
-            self.label1.setText("Voltage2 (V):")
-            self.layout.addWidget(self.label1)					#current and voltage outputs
+            self.label.setText("Voltage (V):")
+            self.layout.addWidget(self.label)					#current and voltage outputs
 
             self.label2 = QtWidgets.QLabel(self.layoutWidget) 
-            self.label2.setText("Current1 (A):")
+            self.label2.setText("Current (A):")
             self.layout.addWidget(self.label2)
-
-            self.label3 = QtWidgets.QLabel(self.layoutWidget) 
-            self.label3.setText("Current2 (A):")
-            self.layout.addWidget(self.label3)
             
             #Read IV labels PS
             self.label4 = QtWidgets.QLabel(self.layoutWidget2)
             self.label4.setText("-")
             self.layout2.addWidget(self.label4)
 
-            self.label5 = QtWidgets.QLabel(self.layoutWidget2)
-            self.label5.setText("-")
-            self.layout2.addWidget(self.label5)
-
             self.label6 = QtWidgets.QLabel(self.layoutWidget2)
             self.label6.setText("-")
             self.layout2.addWidget(self.label6)
-
-            self.label7 = QtWidgets.QLabel(self.layoutWidget2)
-            self.label7.setText("-")
-            self.layout2.addWidget(self.label7)
             
             #pushbutton ps
             self.b1 = QtWidgets.QPushButton(self.layoutWidget3)
@@ -243,8 +241,8 @@ class MyWindowPS(object):
             self.pen = pg.mkPen(color="k", width=2)
             self.layout8.addWidget(self.graphWidget)						#voltage and current graphs
             self.graphWidget.setBackground('w')
-            self.graphWidget.setTitle("PS Volt1 vs Time (sec)", color="b", size="10pt")
-            self.graphWidget.setLabel('left', 'Volt1 (V)', color="r", size="5pt")
+            self.graphWidget.setTitle("PS Voltage vs Time (sec)", color="b", size="10pt")
+            self.graphWidget.setLabel('left', 'Voltage (V)', color="r", size="5pt")
             self.graphWidget.setLabel('bottom', 'Time (S)', color="r", size="5pt")
             self.graphWidget.showGrid(x=True, y=True)
 
@@ -253,16 +251,32 @@ class MyWindowPS(object):
             self.graphWidget2 = pg.PlotWidget()
             self.layout9.addWidget(self.graphWidget2)
             self.graphWidget2.setBackground('w')
-            self.graphWidget2.setTitle("PS Curr1 vs Time (sec)", color="b", size="10pt")
-            self.graphWidget2.setLabel('left', 'Curr1 (A)', color="r", size="5pt")
+            self.graphWidget2.setTitle("PS Current vs Time (sec)", color="b", size="10pt")
+            self.graphWidget2.setLabel('left', 'Current (A)', color="r", size="5pt")
             self.graphWidget2.setLabel('bottom', 'Time (S)', color="r", size="5pt")
             self.graphWidget2.showGrid(x=True, y=True)
 
             self.data_line2 = self.graphWidget2.plot(self.time, self.curr1, pen = self.pen)
 
+    def addresses (self):
+        self.dict_addresses={}
+        self.dict_labels={}
+        y_label = -10
+        y_box = 50
+        for i in range (int(self.lineEdit_details.text())):
+            self.dict_labels["Label{0}".format(i)] = QtWidgets.QLabel(str ("Address" + str (i)), self.tab_details)
+            self.dict_labels["Label{0}".format(i)].setGeometry(QtCore.QRect(10,y_label,200,150)) 
+            self.dict_addresses["Address{0}".format(i)] = QtWidgets.QLineEdit(self.tab_details)
+            self.dict_addresses["Address{0}".format(i)].setGeometry(QtCore.QRect(110,y_box,150,30))
+            self.dict_addresses["Address{0}".format(i)].setMaxLength(12)
+            self.dict_addresses["Address{0}".format(i)].editingFinished.connect(lambda: self.print_str(self.identifier + 'Address=' + \
+                                                                                                             self.lineEdit_details.text()))
+    
+            y_label = y_label + 40    #add dimension iterations and updates for dimensions
+            y_box = y_box + 40
 
-    # In[ ]:
-
+    def print_str(self,string):
+        print(string)
 
     def gpib(self, addr):								#PS connected to GPIB, comm
           self.gpib_inst = comm('5') #with user input, should be comm(addr)

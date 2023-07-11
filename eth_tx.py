@@ -318,6 +318,7 @@ class eth_tx(object):
         self.eth.update_CC_CONTROL()
 
     def update_eth(self):
+        print("updated eth")
         self.eth.DST_MAC_ADDR[0] = self.lineEdit_DST_MAC_ADDR.text()
         self.eth.SRC_MAC_ADDR[0] = self.lineEdit_SRC_MAC_ADDR.text()
         self.eth.update_ETH_CONFIG()
