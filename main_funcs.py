@@ -127,7 +127,7 @@ class MyWindowPS(object):
             self.tabWidget.addTab(self.tab_details, "Details:")
 
             self.tab_PS = QtWidgets.QWidget(MainWindow)			#individual tabs for each PS
-            self.tabWidget.addTab(self.tab_PS, "PS: ") #address) 
+            self.tabWidget.addTab(self.tab_PS, "Test: ") #address) 
 
             #PRINTOUT LAYOUT
             self.logLayoutWdiget = QtWidgets.QWidget(MainWindow)
@@ -142,15 +142,110 @@ class MyWindowPS(object):
             
             #PS 
 
-            num_label = QtWidgets.QLabel("Number of PS", self.tab_details)
-            num_label.setGeometry(QtCore.QRect(10,-50,200,150))
-            self.lineEdit_details = QtWidgets.QLineEdit(self.tab_details)
-            self.lineEdit_details.setGeometry(QtCore.QRect(110,10,150,30))
-            self.lineEdit_details.setMaxLength(12)
-            self.lineEdit_details.editingFinished.connect(self.addresses)
-            self.lineEdit_details.editingFinished.connect(lambda: self.print_str(self.identifier + 'Number of PS =' + \
-                                                                                            self.lineEdit_details.text()))
-            
+            ps_num =  input("How many PS?")
+
+            self.dict_addresses={}
+            self.dict_labels={}
+            self.dict_PSON = {}
+            self.dict_PSOFF = {}
+            self.dict_PS_init = {}
+            self.layoutWidget = {}
+            self.layout = {}
+            self.layoutWidget2 = {}
+            self.layout2 = {}
+            self.dict_PSINIT_layout = {}
+            self.dict_PSON_layout = {}
+            self.dict_PSOFF_layout = {}
+            self.dict_v = {}
+            self.dict_c = {}
+            self.dict_dash_v = {}
+            self.dict_dash_c = {}
+            self.dict_init_button = {}
+            self.dict_on_button = {}
+            self.dict_off_button = {}
+            self.dict_graph = {}
+            self.dict_graph_layout = {}
+            self.dict_graph_button = {}
+
+            y_label = -40
+            y_box = 20
+
+            self.dict_PStabs = {}
+            for i in range (int(ps_num)):
+                self.dict_PStabs["PS{0}".format(i)] = QtWidgets.QWidget(MainWindow)
+                self.tabWidget.addTab(self.dict_PStabs["PS{0}".format(i)], "PS" + str(i))
+
+                self.dict_labels["Label{0}".format(i)] = QtWidgets.QLabel(str ("Address" + str (i)), self.tab_details)
+                self.dict_labels["Label{0}".format(i)].setGeometry(QtCore.QRect(10,y_label,200,150))
+                self.dict_addresses["Address{0}".format(i)] = QtWidgets.QLineEdit(self.tab_details)
+                self.dict_addresses["Address{0}".format(i)].setGeometry(QtCore.QRect(110,y_box,150,30))
+                self.dict_addresses["Address{0}".format(i)].setMaxLength(12)
+                self.dict_addresses["Address{0}".format(i)].editingFinished.connect(lambda: self.print_str(self.identifier + 'Address=' + \
+                                                                                                             self.lineEdit_details.text()))
+
+                y_label = y_label + 40    #add dimension iterations and updates for dimensions
+                y_box = y_box + 40
+
+                self.layoutWidget["FirstLayout{0}".format(i)] = QtWidgets.QWidget( self.dict_PStabs["PS{0}".format(i)])
+                self.layoutWidget["FirstLayout{0}".format(i)].setGeometry(QtCore.QRect(30,70,200,150))
+                self.layout["Layout{0}".format(i)] = QtWidgets.QVBoxLayout(self.layoutWidget["FirstLayout{0}".format(i)])
+
+                self.layoutWidget2["SecondLayout{0}".format(i)] = QtWidgets.QWidget( self.dict_PStabs["PS{0}".format(i)])
+                self.layoutWidget2["SecondLayout{0}".format(i)].setGeometry(QtCore.QRect(150,70,200,150))
+                self.layout2["Layout{0}".format(i)] = QtWidgets.QVBoxLayout(self.layoutWidget2["SecondLayout{0}".format(i)])
+
+                self.dict_PS_init["INIT PS{0}".format(i)] = QtWidgets.QWidget( self.dict_PStabs["PS{0}".format(i)])
+                self.dict_PS_init["INIT PS{0}".format(i)].setGeometry(QtCore.QRect(140,-20,150,150))
+                self.dict_PSINIT_layout["PS{0} Layout".format(i)] = QtWidgets.QVBoxLayout(self.dict_PS_init["INIT PS{0}".format(i)])
+
+                self.dict_init_button["Init button PS{0}".format(i)] = QtWidgets.QPushButton(  self.dict_PS_init["INIT PS{0}".format(i)])
+                self.dict_init_button["Init button PS{0}".format(i)].setText("Init PS " + str(i))
+                self.dict_PSINIT_layout["PS{0} Layout".format(i)].addWidget( self.dict_init_button["Init button PS{0}".format(i)])
+                self.dict_init_button["Init button PS{0}".format(i)].clicked.connect(self.gpib)
+
+                self.dict_PSON["PS{0} ON".format(i)] = QtWidgets.QWidget(self.dict_PStabs["PS{0}".format(i)])
+                self.dict_PSON["PS{0} ON".format(i)].setGeometry(QtCore.QRect(25,170,130,150))
+                self.dict_PSON_layout["PS{0} Layout".format(i)] = QtWidgets.QVBoxLayout(self.dict_PSON["PS{0} ON".format(i)])
+
+                self.dict_on_button["PS{0} On button".format(i)] = QtWidgets.QPushButton(self.dict_PSON["PS{0} ON".format(i)])
+                self.dict_on_button["PS{0} On button".format(i)].setText("PS " + str(i) + " ON")
+                self.dict_PSON_layout["PS{0} Layout".format(i)].addWidget(self.dict_on_button["PS{0} On button".format(i)] )
+                self.dict_on_button["PS{0} On button".format(i)].clicked.connect(self.gpib)
+
+                self.dict_PSOFF["PS{0} OFF".format(i)] = QtWidgets.QWidget(self.dict_PStabs["PS{0}".format(i)])
+                self.dict_PSOFF["PS{0} OFF".format(i)].setGeometry(QtCore.QRect(150,170,130,150))
+                self.dict_PSOFF_layout["PS{0} Layout".format(i)] = QtWidgets.QVBoxLayout(self.dict_PSOFF["PS{0} OFF".format(i)])
+
+                self.dict_off_button["PS{0} Off button".format(i)] = QtWidgets.QPushButton(self.dict_PSOFF["PS{0} OFF".format(i)])
+                self.dict_off_button["PS{0} Off button".format(i)].setText("PS " + str(i) + " OFF")
+                self.dict_PSOFF_layout["PS{0} Layout".format(i)].addWidget(self.dict_off_button["PS{0} Off button".format(i)] )
+                self.dict_off_button["PS{0} Off button".format(i)].clicked.connect(self.gpib)
+
+                self.dict_v["PS{0} Voltage".format(i)] = QtWidgets.QLabel(self.layoutWidget["FirstLayout{0}".format(i)])
+                self.dict_v["PS{0} Voltage".format(i)].setText(str ("PS" + str (i) + " Voltage:"))
+                self.layout["Layout{0}".format(i)].addWidget(self.dict_v["PS{0} Voltage".format(i)])
+                
+                self.dict_c["PS{0} Current".format(i)] = QtWidgets.QLabel(self.layoutWidget["FirstLayout{0}".format(i)])
+                self.dict_c["PS{0} Current".format(i)].setText(str ("PS" + str (i) + " Current:"))
+                self.layout["Layout{0}".format(i)].addWidget(self.dict_c["PS{0} Current".format(i)])
+                
+                self.dict_dash_v["PS{0} Dash".format(i)] = QtWidgets.QLabel(self.layoutWidget2["SecondLayout{0}".format(i)])
+                self.dict_dash_v["PS{0} Dash".format(i)].setText("-")
+                self.layout2["Layout{0}".format(i)].addWidget(self.dict_dash_v["PS{0} Dash".format(i)])
+
+                self.dict_dash_c["PS{0} Dash".format(i)] = QtWidgets.QLabel(self.layoutWidget2["SecondLayout{0}".format(i)])
+                self.dict_dash_c["PS{0} Dash".format(i)].setText("-")
+                self.layout2["Layout{0}".format(i)].addWidget(self.dict_dash_c["PS{0} Dash".format(i)])
+
+                self.dict_graph["PS{0} Graph".format(i)] = QtWidgets.QWidget(self.dict_PStabs["PS{0}".format(i)])
+                self.dict_graph["PS{0} Graph".format(i)].setGeometry(QtCore.QRect(10,-30,130,170))
+                self.dict_graph_layout["PS{0} Graph Layout".format(i)] = QtWidgets.QVBoxLayout(self.dict_graph["PS{0} Graph".format(i)])
+
+                self.dict_graph_button["PS{0} Graph button".format(i)] = QtWidgets.QPushButton(self.dict_graph["PS{0} Graph".format(i)])
+                self.dict_graph_button["PS{0} Graph button".format(i)].setText("Show Graphs")
+                self.dict_graph_layout["PS{0} Graph Layout".format(i)].addWidget(self.dict_graph_button["PS{0} Graph button".format(i)] )
+                self.dict_graph_button["PS{0} Graph button".format(i)].clicked.connect(self.gpib)
+
 
             self.layoutWidget = QtWidgets.QWidget(self.tab_PS)
             self.layoutWidget.setGeometry(QtCore.QRect(30,70,200,150))
@@ -263,7 +358,7 @@ class MyWindowPS(object):
         self.dict_labels={}
         y_label = -10
         y_box = 50
-        for i in range (int(self.lineEdit_details.text())):
+        for i in range (int(ps_num)):
             self.dict_labels["Label{0}".format(i)] = QtWidgets.QLabel(str ("Address" + str (i)), self.tab_details)
             self.dict_labels["Label{0}".format(i)].setGeometry(QtCore.QRect(10,y_label,200,150)) 
             self.dict_addresses["Address{0}".format(i)] = QtWidgets.QLineEdit(self.tab_details)
@@ -274,6 +369,14 @@ class MyWindowPS(object):
     
             y_label = y_label + 40    #add dimension iterations and updates for dimensions
             y_box = y_box + 40
+    
+    def ps_tabs(self,MainWindow):
+        self.dict_PStabs = {}
+        for i in range (int(self.lineEdit_details.text())):
+            self.dict_PStabs["PS{0}".format(i)] = QtWidgets.QWidget(MainWindow)	
+            self.tabWidget.addTab(self.dict_PStabs["PS{0}".format(i)], "PS" + str(i))
+        self.tabs_list = list(self.dict_PStabs)
+
 
     def print_str(self,string):
         print(string)
