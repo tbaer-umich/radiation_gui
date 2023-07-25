@@ -1,18 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[9]:
-
-
 import pyvisa 
 import time 
 import sys 
 import os 
 import scanf
-
-
-# In[38]:
-
 
 def comm(addr):                               #establish connection with GPIB with resource manager for PS
     addr = int(addr) #turn argument into integer
@@ -26,20 +19,14 @@ def comm(addr):                               #establish connection with GPIB wi
         instq = gpib_inst.query('INST:SEL?') 
         
         appl = gpib_inst.write('APPL 7.0, 2.0')
-#         v_applied = input("Maximum Voltage: ")
-#         i_applied = input ("Maximum Current: ")
 #         appl = gpib_inst.write('Voltage: ', v_applied, 'Current: ', i_applied) #apply current and voltage values and check, ask for user input
         
         applq = gpib_inst.query('APPL?')
  
     return gpib_inst
 
-
-# In[39]:
-
-
-def PS_on():                                   #power on 
-    gpib_inst = comm('5') #global address here 
+def PS_on(addr):                                   #power on 
+    gpib_inst = comm(addr) #global address here 
     for i in range(1,3):
         outp = gpib_inst.write('INST:SEL OUT{}'.format(i))
         outpq = gpib_inst.query('INST:SEL?')
@@ -51,14 +38,8 @@ def PS_on():                                   #power on
     #Include timer 
     #Log File: Power Supply Output ON 
 
-#PS_on()
-
-
-# In[40]:
-
-
-def PS_off():                                   #power off 
-    gpib_inst = comm('5')
+def PS_off(addr):                                   #power off 
+    gpib_inst = comm(addr)
     outp_off = gpib_inst.write('OUTP OFF')
     outp_offq = gpib_inst.query('OUTP?')
     #print('OUTP: ', outp_offq)
@@ -66,14 +47,8 @@ def PS_off():                                   #power off
     #Include timer 
     #Log File: Power Supply Output Off 
 
-#PS_off()
-
-
-# In[41]:
-
-
-def IV_meas():
-    gpib_inst = comm('5') 
+def IV_meas(addr):
+    gpib_inst = comm(addr) 
     inst1 = gpib_inst.write('INST:SEL OUT1')
     inst1q = gpib_inst.query('INST:SEL?')
     volt1 = gpib_inst.query('MEAS:VOLT?')
