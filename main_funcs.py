@@ -29,16 +29,28 @@ import csv
 from functools import partial
 
 class PSWorker(QObject):
+    '''
+    finished_dict = {}
+      error_dict = {}
+      all_data_dict = {}
+      GUI_PS_dict = {}
+      ps_num = input("How many PS? ")
+      for i in range (int(ps_num)):
+          finished_dict["Finished{0}".format(i)] = pyqtSignal()
+          error_dict["Error{0}".format(i)] = pyqtSignal(tuple)
+          all_data_dict["All Data{0}".format(i)] = pyqtSignal(float, float, float, float, int, object)
+          GUI_PS_dict["GUI PS{0}".format(i)] = pyqtSignal(float, float, float, float)
+      '''
     finished = pyqtSignal()
     error = pyqtSignal(tuple)
     all_data = pyqtSignal(float, float, float, float, int, object)
     GUI_PS = pyqtSignal(float, float, float, float)
 
 
-    def __init__(self, MyWindow, identifier):
+    def __init__(self, MyWindow, identifier, i):
             super(PSWorker, self).__init__()
             self.MyWindow = MyWindow 
-            self.MyWindow.processing = True
+            self.MyWindow.processing[i] = True
             self.identifier = identifier
             '''
             self.all_data = {}
@@ -47,13 +59,13 @@ class PSWorker(QObject):
                 self.all_data["All Data {0}".format(i)] = pyqtSignal(float, float, float, float, int, object) #v and i data, time data
                 self.GUI_ps["GUI PS {0}".format(i)] = pyqtSignal(float, float, float, float)
             '''
-    def run(self,addr, volt1, curr1, volt2, curr2):
+    def run(self,addr, volt1, curr1, volt2, curr2, i):
         self.MyWindow.time_last = 0
         time_accu = self.MyWindow.time_total 
-        print(self.identifier +  "Start Monitoring")
+        print(self.identifier +  "Start Monitoring PS" + str(i))
         start = time.time()
         self.target_time = datetime.datetime.now()
-        while self.MyWindow.processing:
+        while self.MyWindow.processing[i]:
             self.target_time = self.target_time + datetime.timedelta(seconds=60)
             while self.MyWindow.device_release==0:
                 pass
@@ -70,23 +82,24 @@ class PSWorker(QObject):
             
             self.MyWindow.time_total = time_accu + self.MyWindow.time_last
 
-        print(self.identifier+"End Monitoring")
+        print(self.identifier+"End Monitoring for PS" + str(i))
         print(self.identifier+"Monitoring Time: " + str(end-start))
         
         self.finished.emit()
+        return
              
 
-    def stop(self):
-            self.MyWindow.processing = False
+    def stop(self, i):
+            self.MyWindow.processing[i] = False
 
 class MyWindowPS(object):
     def __init__(self):
         self.time_total = 0
-        self.processing = False
         self.device_release = 1
         self.date_txt = 'BNL'
         self.condition_txt = 'beam_run'
         self.ps_num = input("How many PS? ")
+        self.processing = [False for i in range(int(self.ps_num))]
         self.csv_file = {}
         self.txt_file = {}
         self.PS_CSM_csvname = 'CSM_' + self.date_txt + '_' + self.condition_txt + '.csv'
@@ -96,13 +109,10 @@ class MyWindowPS(object):
        #     self.txt_file["TXT{0}".format(i)] = 'CSM_' + str(i)  + self.date_txt + '_' + self.condition_txt + '.txt'
         return 
 
-
-# In[ ]:
-
-
     def initUI(self, MainWindow, identifier):
             self.volt1 = []
             self.curr1 = []
+            self.time_dict = {}
             self.time = []
             self.date = []
             self.identifier = identifier
@@ -115,6 +125,7 @@ class MyWindowPS(object):
             self.volt1_data = {}
             self.curr1_data = {}
             self.volt2_data = {}
+            self.data = {}
             self.curr2_data = {}
             self.dict_PSON = {}
             self.dict_PSOFF = {}
@@ -161,14 +172,21 @@ class MyWindowPS(object):
             self.addr_num_layout = {}
             self.addr_num_label = {}
             self.tabwidget = {}
+            self.dict_plot_layout3 = {}
+            self.dict_ps_layout3 = {}
+            self.dict_graph_widget3 ={}
+            self.dict_plot_layout4 = {}
+            self.dict_ps_layout4 = {}
+            self.dict_graph_widget4 ={}
+
 
             #TABS
             self.tabWidget = QtWidgets.QTabWidget(MainWindow)
-            self.tabWidget.setGeometry(QtCore.QRect(20,20, 1100,650))
+            self.tabWidget.setGeometry(QtCore.QRect(20,20, 1350,650))
 
             #PRINTOUT LAYOUT
             self.logLayoutWdiget = QtWidgets.QWidget(MainWindow)
-            self.logLayoutWdiget.setGeometry(QtCore.QRect(20, 680, 1100, 200))  # (left, top, width, height)
+            self.logLayoutWdiget.setGeometry(QtCore.QRect(20, 680, 1350, 200))  # (left, top, width, height)
             self.logLayout = QtWidgets.QVBoxLayout(self.logLayoutWdiget)
             self.logLayout.setContentsMargins(0, 0, 0, 0)
 
@@ -184,24 +202,21 @@ class MyWindowPS(object):
                 print ("Only numbers are accepted. Please enter a number.")
             '''
 
-            self.addr_list = []
-            self.voltage_list = []
-            self.current_list = []
-
             self.volt1_dict = {}
             self.volt2_dict = {}
             self.curr1_dict = {}
             self.curr2_dict = {}
-
+            self.worker_dict = {}
+            self.thread_dict = {}
+            self.IV_off = {}
             for i in range (int(self.ps_num)):
-
+                self.time_dict["Time{0}".format(i)] = []
                 self.volt1_data["Output 1 Volt{0}".format(i)] = []
                 self.curr1_data["Output 1 Curr{0}".format(i)] = []
                 self.volt2_data["Output 2 Volt{0}".format(i)] = []
                 self.curr2_data["Output 2 Curr{0}".format(i)] = []
                 
                 self.addr["Address{0}".format(i)] = int(input("Address for PS" + str(i) + ": "))
-                self.addr_list.append(self.addr["Address{0}".format(i)])
 
                 self.voltage1["Voltage{0}".format(i)] = int(input("Max Voltage for PS" + str(i) + " Output 1: "))
 
@@ -229,7 +244,7 @@ class MyWindowPS(object):
                 self.dict_init_button["Init button PS{0}".format(i)] = QtWidgets.QPushButton(  self.dict_PS_init["INIT PS{0}".format(i)])
                 self.dict_init_button["Init button PS{0}".format(i)].setText("Init Power Supply " + str(i))
                 self.dict_PSINIT_layout["PS{0} Layout".format(i)].addWidget( self.dict_init_button["Init button PS{0}".format(i)])
-                self.dict_init_button["Init button PS{0}".format(i)].clicked.connect(lambda:self.gpib(int(self.addr_list[i]),int(i),self.voltage1["Voltage{0}".format(i)],self.current1["Current{0}".format(i)],self.voltage2["Voltage{0}".format(i)],self.current2["Current{0}".format(i)]))
+                self.dict_init_button["Init button PS{0}".format(i)].clicked.connect(lambda state, x=i: self.gpib(int(self.addr["Address{0}".format(x)]),int(x),self.voltage1["Voltage{0}".format(x)],self.current1["Current{0}".format(x)],self.voltage2["Voltage{0}".format(x)],self.current2["Current{0}".format(x)]))
 
                 self.dict_PSON["PS{0} ON".format(i)] = QtWidgets.QWidget(self.dict_PStabs["PS{0}".format(i)])
                 self.dict_PSON["PS{0} ON".format(i)].setGeometry(QtCore.QRect(25,170,130,150))
@@ -238,7 +253,7 @@ class MyWindowPS(object):
                 self.dict_on_button["PS{0} On button".format(i)] = QtWidgets.QPushButton(self.dict_PSON["PS{0} ON".format(i)])
                 self.dict_on_button["PS{0} On button".format(i)].setText("PS " + str(i) + " ON")
                 self.dict_PSON_layout["PS{0} Layout".format(i)].addWidget(self.dict_on_button["PS{0} On button".format(i)] )
-                self.dict_on_button["PS{0} On button".format(i)].clicked.connect(lambda:self.pwr_on(int(self.addr_list[i]),int(i),self.voltage1["Voltage{0}".format(i)],self.current1["Current{0}".format(i)]    ,self.voltage2["Voltage{0}".format(i)],self.current2["Current{0}".format(i)] ))
+                self.dict_on_button["PS{0} On button".format(i)].clicked.connect(lambda state, x=i: self.pwr_on(int(self.addr["Address{0}".format(x)]),int(x),self.voltage1["Voltage{0}".format(x)],self.current1["Current{0}".format(x)]    ,self.voltage2["Voltage{0}".format(x)],self.current2["Current{0}".format(x)] ))
 
                 self.dict_PSOFF["PS{0} OFF".format(i)] = QtWidgets.QWidget(self.dict_PStabs["PS{0}".format(i)])
                 self.dict_PSOFF["PS{0} OFF".format(i)].setGeometry(QtCore.QRect(150,170,130,150))
@@ -247,7 +262,7 @@ class MyWindowPS(object):
                 self.dict_off_button["PS{0} Off button".format(i)] = QtWidgets.QPushButton(self.dict_PSOFF["PS{0} OFF".format(i)])
                 self.dict_off_button["PS{0} Off button".format(i)].setText("PS " + str(i) + " OFF")
                 self.dict_PSOFF_layout["PS{0} Layout".format(i)].addWidget(self.dict_off_button["PS{0} Off button".format(i)] )
-                self.dict_off_button["PS{0} Off button".format(i)].clicked.connect(lambda:self.pwr_off(int(self.addr_list[i]),int(i),self.voltage1["Voltage{0}".format(i)],self.current1["Current{0}".format(i)]    ,self.voltage2["Voltage{0}".format(i)],self.current2["Current{0}".format(i)] ))
+                self.dict_off_button["PS{0} Off button".format(i)].clicked.connect(lambda state, x=i: self.pwr_off(int(self.addr["Address{0}".format(x)]),int(x),self.voltage1["Voltage{0}".format(x)],self.current1["Current{0}".format(x)]    ,self.voltage2["Voltage{0}".format(x)],self.current2["Current{0}".format(x)] ))
 
                 self.dict_v["PS{0} Voltage1".format(i)] = QtWidgets.QLabel(self.layoutWidget["FirstLayout{0}".format(i)])
                 self.dict_v["PS{0} Voltage1".format(i)].setText(str ("PS" + str (i) + " Voltage 1:"))
@@ -292,12 +307,12 @@ class MyWindowPS(object):
                 self.monitor_on_button["Monitor on{0}".format(i)] = QtWidgets.QPushButton(self.monitor_on_widget["Monitor on{0}".format(i)])
                 self.monitor_on_button["Monitor on{0}".format(i)].setText("MONITOR ON")
                 self.monitor_on_layout["Monitor on{0}".format(i)].addWidget(self.monitor_on_button["Monitor on{0}".format(i)])
-                self.monitor_on_button["Monitor on{0}".format(i)].clicked.connect(lambda: self.monitor_on(int(i)))
+                self.monitor_on_button["Monitor on{0}".format(i)].clicked.connect(lambda state, x=i: self.monitor_on(int(x)))
 
                 self.monitor_off_button["Monitor off{0}".format(i)] = QtWidgets.QPushButton(self.monitor_off_widget["Monitor off{0}".format(i)])
                 self.monitor_off_button["Monitor off{0}".format(i)].setText("MONITOR OFF")
                 self.monitor_off_layout["Monitor off{0}".format(i)].addWidget(self.monitor_off_button["Monitor off{0}".format(i)])
-                self.monitor_off_button["Monitor off{0}".format(i)].clicked.connect(lambda: self.monitor_off(int(i)))
+                self.monitor_off_button["Monitor off{0}".format(i)].clicked.connect(lambda state, x=i: self.monitor_off(int(x)))
                 self.monitor_off_button["Monitor off{0}".format(i)].setEnabled(False)
                                
                 self.address_widget["Address Widget{0}".format(i)] = QtWidgets.QWidget(self.dict_PStabs["PS{0}".format(i)])
@@ -313,53 +328,74 @@ class MyWindowPS(object):
                 self.addr_num_layout["Address layout{0}".format(i)] = QtWidgets.QVBoxLayout(self.addr_num_widget["Address Widget{0}".format(i)])
 
                 self.addr_num_label["Address Label{0}".format(i)] = QtWidgets.QLabel(self.addr_num_widget["Address Widget{0}".format(i)])
-                self.addr_num_label["Address Label{0}".format(i)].setText(str(self.addr_list[i]))
+                self.addr_num_label["Address Label{0}".format(i)].setText(str(self.addr["Address{0}".format(i)]))
                 self.addr_num_layout["Address layout{0}".format(i)].addWidget(self.addr_num_label["Address Label{0}".format(i)])
 
                 self.dict_plot_layout["PS{0} plot layout".format(i)] = QtWidgets.QWidget(self.dict_PStabs["PS{0}".format(i)])
-                self.dict_plot_layout["PS{0} plot layout".format(i)].setGeometry(QtCore.QRect(500, 0, 500, 300))
+                self.dict_plot_layout["PS{0} plot layout".format(i)].setGeometry(QtCore.QRect(320, 0, 500, 300))
                 self.dict_ps_layout["PS{0} plot layout".format(i)] = QtWidgets.QHBoxLayout(self.dict_plot_layout["PS{0} plot layout".format(i)])
                
                 self.dict_graph_widget["PS{0} plot layout".format(i)] = pg.PlotWidget()
                 self.pen = pg.mkPen(color="k", width=2)
-                self.pen2 = pg.mkPen(color="r", width=2)
                 self.dict_ps_layout["PS{0} plot layout".format(i)].addWidget(self.dict_graph_widget["PS{0} plot layout".format(i)])
                 self.dict_graph_widget["PS{0} plot layout".format(i)].setBackground('w')
-                self.dict_graph_widget["PS{0} plot layout".format(i)].setTitle("PS" + str(i) +  " Voltage vs Time (sec)", color="k", size="12pt")
+                self.dict_graph_widget["PS{0} plot layout".format(i)].setTitle("PS" + str(i) +  " Voltage vs Time (Output1)", color="k", size="12pt")
                 self.dict_graph_widget["PS{0} plot layout".format(i)].setLabel('left', 'Voltage (V)', color="r", size="5pt")
                 self.dict_graph_widget["PS{0} plot layout".format(i)].setLabel('bottom', 'Time (S)', color="r", size="5pt")
                 self.dict_graph_widget["PS{0} plot layout".format(i)].showGrid(x=True, y=True)
                 
-                self.dict_graph_widget["PS{0} plot layout".format(i)].addLegend()
-
                 self.volt1_data_line["PS{0} Voltage1 Data Line".format(i)] =  self.dict_graph_widget["PS{0} plot layout".format(i)].plot(self.time, self.volt1_data["Output 1 Volt{0}".format(i)], pen = self.pen, name = "Output 1 Voltage")
-                self.volt2_data_line["PS{0} Voltage2 Data Line".format(i)] =  self.dict_graph_widget["PS{0} plot layout".format(i)].plot(self.time, self.volt2_data["Output 2 Volt{0}".format(i)], pen = self.pen2, name = "Output 2 Voltage")
+
+                self.dict_plot_layout4["PS{0} plot layout".format(i)] = QtWidgets.QWidget(self.dict_PStabs["PS{0}".format(i)])
+                self.dict_plot_layout4["PS{0} plot layout".format(i)].setGeometry(QtCore.QRect(830, 0, 500, 300))
+                self.dict_ps_layout4["PS{0} plot layout".format(i)] = QtWidgets.QHBoxLayout(self.dict_plot_layout4["PS{0} plot layout".format(i)])
+
+                self.dict_graph_widget4["PS{0} plot layout".format(i)] = pg.PlotWidget()
+                self.pen2 = pg.mkPen(color="b", width=2)
+                self.dict_ps_layout4["PS{0} plot layout".format(i)].addWidget(self.dict_graph_widget4["PS{0} plot layout".format(i)])
+                self.dict_graph_widget4["PS{0} plot layout".format(i)].setBackground('w')
+                self.dict_graph_widget4["PS{0} plot layout".format(i)].setTitle("PS" + str(i) +  " Voltage vs Time (Output2)", color="k", size="12pt")
+                self.dict_graph_widget4["PS{0} plot layout".format(i)].setLabel('left', 'Voltage (V)', color="r", size="5pt")
+                self.dict_graph_widget4["PS{0} plot layout".format(i)].setLabel('bottom', 'Time (S)', color="r", size="5pt")
+                self.dict_graph_widget4["PS{0} plot layout".format(i)].showGrid(x=True, y=True)
+
+
+                self.volt2_data_line["PS{0} Voltage2 Data Line".format(i)] =  self.dict_graph_widget4["PS{0} plot layout".format(i)].plot(self.time, self.volt2_data["Output 2 Volt{0}".format(i)], pen = self.pen2, name = "Output 2 Voltage")
 
                 self.dict_plot_layout2["PS{0} plot layout".format(i)] = QtWidgets.QWidget(self.dict_PStabs["PS{0}".format(i)])
-                self.dict_plot_layout2["PS{0} plot layout".format(i)].setGeometry(QtCore.QRect(500, 300, 500, 300))
+                self.dict_plot_layout2["PS{0} plot layout".format(i)].setGeometry(QtCore.QRect(320, 300, 500, 300))
                 self.dict_ps_layout2["PS{0} plot layout".format(i)] = QtWidgets.QHBoxLayout(self.dict_plot_layout2["PS{0} plot layout".format(i)])
                 
-                self.pen3 = pg.mkPen(color="k",width=2)
-                self.pen4 = pg.mkPen(color="r",width=2)
+                self.pen4 = pg.mkPen(color="k",width=2)
                 self.dict_graph_widget2["PS{0} plot layout".format(i)] = pg.PlotWidget()
                 self.dict_ps_layout2["PS{0} plot layout".format(i)].addWidget(self.dict_graph_widget2["PS{0} plot layout".format(i)])
                 self.dict_graph_widget2["PS{0} plot layout".format(i)].setBackground('w')
-                self.dict_graph_widget2["PS{0} plot layout".format(i)].setTitle("PS" + str(i) +  " Current vs Time (sec)", color="k", size="12pt")
+                self.dict_graph_widget2["PS{0} plot layout".format(i)].setTitle("PS" + str(i) +  " Current vs Time (Output 1)", color="k", size="12pt")
                 self.dict_graph_widget2["PS{0} plot layout".format(i)].setLabel('left', 'Current (A)', color="r", size="5pt")
                 self.dict_graph_widget2["PS{0} plot layout".format(i)].setLabel('bottom', 'Time (S)', color="r", size="5pt")
                 self.dict_graph_widget2["PS{0} plot layout".format(i)].showGrid(x=True, y=True)
 
-                self.dict_graph_widget2["PS{0} plot layout".format(i)].addLegend()
+                self.curr1_data_line["PS{0} Current1  Data Line".format(i)] = self.dict_graph_widget2["PS{0} plot layout".format(i)].plot(self.time, self.curr1_data["Output 1 Curr{0}".format(i)], pen = self.pen4, name = "Output 1 Current")
 
-                self.curr1_data_line["PS{0} Current1  Data Line".format(i)] = self.dict_graph_widget2["PS{0} plot layout".format(i)].plot(self.time, self.curr1_data["Output 1 Curr{0}".format(i)], pen = self.pen3, name = "Output 1 Current")
-                self.curr2_data_line["PS{0} Current2  Data Line".format(i)] = self.dict_graph_widget2["PS{0} plot layout".format(i)].plot(self.time, self.curr2_data["Output 2 Curr{0}".format(i)], pen = self.pen4, name = "Output 2 Current")
-           # print (self.identifier , self.volt1_dict)
+                self.dict_plot_layout3["PS{0} plot layout".format(i)] = QtWidgets.QWidget(self.dict_PStabs["PS{0}".format(i)])
+                self.dict_plot_layout3["PS{0} plot layout".format(i)].setGeometry(QtCore.QRect(830, 300, 500, 300))
+                self.dict_ps_layout3["PS{0} plot layout".format(i)] = QtWidgets.QHBoxLayout(self.dict_plot_layout3["PS{0} plot layout".format(i)])
+
+                self.pen3 = pg.mkPen(color="b",width=2)
+                self.dict_graph_widget3["PS{0} plot layout".format(i)] = pg.PlotWidget()
+                self.dict_ps_layout3["PS{0} plot layout".format(i)].addWidget(self.dict_graph_widget3["PS{0} plot layout".format(i)])
+                self.dict_graph_widget3["PS{0} plot layout".format(i)].setBackground('w')
+                self.dict_graph_widget3["PS{0} plot layout".format(i)].setTitle("PS" + str(i) +  " Current vs Time (Output 2)", color="k", size="12pt")
+                self.dict_graph_widget3["PS{0} plot layout".format(i)].setLabel('left', 'Current (A)', color="r", size="5pt")
+                self.dict_graph_widget3["PS{0} plot layout".format(i)].setLabel('bottom', 'Time (S)', color="r", size="5pt")
+                self.dict_graph_widget3["PS{0} plot layout".format(i)].showGrid(x=True, y=True)
+                
+                self.curr2_data_line["PS{0} Current2  Data Line".format(i)] = self.dict_graph_widget3["PS{0} plot layout".format(i)].plot(self.time, self.curr2_data["Output 2 Curr{0}".format(i)], pen = self.pen3, name = "Output 2 Current")
+
     def print_str(self,string):
         print(string)
 
     def gpib(self,addr,j, volt1, curr1, volt2, curr2):	#PS connected to GPIB, comm
-          print (self.identifier + "here")
-          print (self.identifier + str( volt1 ) + str(curr1) + str(volt2) + str(curr2))
           self.gpib_inst = comm(addr, volt1, curr1, volt2, curr2) #with user input, should be comm(addr)
           print(self.identifier+"Power supply " + str(j) + " connected to GPIB")
           with open(self.PS_CSM_txtname, "a") as f:
@@ -376,7 +412,7 @@ class MyWindowPS(object):
            self.device_release = 0
            self.ON = PS_on(addr, volt1, curr1, volt2, curr2)
            self.device_release = 1
-           print(self.identifier+'OUTP ON PS__')
+           print(self.identifier+'PS' + str(j) + ' Output ON')
            time.sleep(3)
            with open(self.PS_CSM_txtname, "a") as f:    					#turn on PS
                dop = datetime.datetime.now().strftime("%d-%b-%Y %H:%M:%S")
@@ -391,7 +427,7 @@ class MyWindowPS(object):
           self.device_release = 0
           self.OFF = PS_off(addr, volt1, curr1, volt2, curr2)
           self.device_release = 1
-          print(self.identifier+'OUTP OFF PS')
+          print(self.identifier+'PS' + str(j) + ' Output OFF')
           time.sleep(3)
           with open(self.PS_CSM_txtname, "a") as f:
               doff = datetime.datetime.now().strftime("%d-%b-%Y %H:%M:%S")
@@ -401,19 +437,41 @@ class MyWindowPS(object):
           self.dict_on_button["PS{0} On button".format(j)].setEnabled(True)
 
     def monitor_on(self,i):
+
+        self.time_dict["Time{0}".format(i)] = []
         
         self.volt1_data["Output 1 Volt{0}".format(i)] = []
         self.curr1_data["Output 1 Curr{0}".format(i)] = []
         self.volt2_data["Output 2 Volt{0}".format(i)] = []
         self.curr2_data["Output 2 Curr{0}".format(i)] = []
+
+        self.thread_dict["Thread{0}".format(i)] = QThread()                                          
+        self.worker_dict["Worker{0}".format(i)] = PSWorker(self, self.identifier, i)
         
+        self.worker_dict["Worker{0}".format(i)].moveToThread(self.thread_dict["Thread{0}".format(i)])
+        
+        self.thread_dict["Thread{0}".format(i)].started.connect(partial(self.worker_dict["Worker{0}".format(i)].run, int(self.addr["Address{0}".format(i)]),self.voltage1["Voltage{0}".format(i)],self.current1["Current{0}".format(i)]    ,self.voltage2["Voltage{0}".format(i)],self.current2["Current{0}".format(i)], int(i) ))
+
+        self.worker_dict["Worker{0}".format(i)].finished.connect(self.thread_dict["Thread{0}".format(i)].quit)
+        self.worker_dict["Worker{0}".format(i)].finished.connect(self.worker_dict["Worker{0}".format(i)].deleteLater)            
+        self.thread_dict["Thread{0}".format(i)].finished.connect(self.thread_dict["Thread{0}".format(i)].deleteLater)
+        self.worker_dict["Worker{0}".format(i)].all_data.connect(partial(self.graph, int(i)))
+        self.worker_dict["Worker{0}".format(i)].GUI_PS.connect(partial(self.label_func, int(i)))
+        self.thread_dict["Thread{0}".format(i)].start()
+        self.monitor_on_button["Monitor on{0}".format(i)].setEnabled(False)
+        self.monitor_off_button["Monitor off{0}".format(i)].setEnabled(True)
+        self.thread_dict["Thread{0}".format(i)].finished.connect(lambda: self.monitor_on_button["Monitor on{0}".format(i)].setEnabled(True))
+        self.thread_dict["Thread{0}".format(i)].finished.connect(lambda: self.monitor_off_button["Monitor off{0}".format(i)].setEnabled(False))
+        self.thread_dict["Thread{0}".format(i)].finished.connect(lambda: self.monitor_off(int (i)))
+        
+        '''
         self.thread = QThread()                                          
         self.worker = PSWorker(self, self.identifier)
         
         self.worker.moveToThread(self.thread)
         
-        self.thread.started.connect(partial(self.worker.run, int(self.addr_list[i]),self.voltage1["Voltage{0}".format(i)],self.current1["Current{0}".format(i)]    ,self.voltage2["Voltage{0}".format(i)],self.current2["Current{0}".format(i)] ))
-        
+        self.thread.started.connect(partial(self.worker.run, int(self.addr["Address{0}".format(i)]),self.voltage1["Voltage{0}".format(i)],self.current1["Current{0}".format(i)]    ,self.voltage2["Voltage{0}".format(i)],self.current2["Current{0}".format(i)], int(i) ))
+
         self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)            
         self.thread.finished.connect(self.thread.deleteLater)
@@ -422,9 +480,10 @@ class MyWindowPS(object):
         self.thread.start()
         self.monitor_on_button["Monitor on{0}".format(i)].setEnabled(False)
         self.monitor_off_button["Monitor off{0}".format(i)].setEnabled(True)
-        self.thread.finished.connect(lambda: self.monitor_on_button["Monitor on{0}".format(i)].setEnabled(True))
-        self.thread.finished.connect(lambda: self.monitor_off_button["Monitor off{0}".format(i)].setEnabled(False))
-        self.thread.finished.connect(lambda: self.monitor_off(int (i)))
+        self.thread.finished.connect(lambda state, x=i: self.monitor_on_button["Monitor on{0}".format(x)].setEnabled(True))
+        self.thread.finished.connect(lambda state, x=i: self.monitor_off_button["Monitor off{0}".format(x)].setEnabled(False))
+        self.thread.finished.connect(lambda state, x=i: self.monitor_off(int (x)))
+        '''
         '''
         with open(self.PS_CSM_txtname, "a") as f:
             d = datetime.datetime.now().strftime("%d-%b-%Y %H:%M:%S")
@@ -451,21 +510,26 @@ class MyWindowPS(object):
          self.volt2_data["Output 2 Volt{0}".format(i)].append(f2)
          self.curr1_data["Output 1 Curr{0}".format(i)].append(f3)
          self.curr2_data["Output 2 Curr{0}".format(i)].append(f4)           #need separate time and date dictionaries?
-         self.time.append(i1)
+         self.time_dict["Time{0}".format(i)].append(i1)
          self.date.append(obj1)
 
-         if len(self.time) > 30:
+         if len(self.time_dict["Time{0}".format(i)]) > 30:
              self.volt1_data["Output 1 Volt{0}".format(i)] = self.volt1_data["Output 1 Volt{0}".format(i)][1:]
              self.volt2_data["Output 2 Volt{0}".format(i)] = self.volt2_data["Output 2 Volt{0}".format(i)][1:]
              self.curr1_data["Output 1 Curr{0}".format(i)] = self.curr1_data["Output 1 Curr{0}".format(i)][1:] 
              self.curr2_data["Output 2 Curr{0}".format(i)] = self.curr2_data["Output 2 Curr{0}".format(i)][1:]
-             self.time = self.time[1:] 
+             self.time_dict["Time{0}".format(i)] = self.time_dict["Time{0}".format(i)][1:] 
              self.date = self.date[1:] 
+        
+         ## DEBUG
+         #print(self.identifier, self.volt1_data_line["PS{0} Voltage1 Data Line".format(i)])
+         #print(self.identifier, self.time)
+         #print(self.identifier, self.volt1_data["Output 1 Volt{0}".format(i)])
 
-         self.volt1_data_line["PS{0} Voltage1 Data Line".format(i)].setData(self.time,self.volt1_data["Output 1 Volt{0}".format(i)])
-         self.volt2_data_line["PS{0} Voltage2 Data Line".format(i)].setData(self.time,self.volt2_data["Output 2 Volt{0}".format(i)])
-         self.curr1_data_line["PS{0} Current1  Data Line".format(i)].setData(self.time,self.curr1_data["Output 1 Curr{0}".format(i)])
-         self.curr2_data_line["PS{0} Current2  Data Line".format(i)].setData(self.time,self.curr2_data["Output 2 Curr{0}".format(i)])
+         self.volt1_data_line["PS{0} Voltage1 Data Line".format(i)].setData(self.time_dict["Time{0}".format(i)],self.volt1_data["Output 1 Volt{0}".format(i)])
+         self.volt2_data_line["PS{0} Voltage2 Data Line".format(i)].setData(self.time_dict["Time{0}".format(i)],self.volt2_data["Output 2 Volt{0}".format(i)])
+         self.curr1_data_line["PS{0} Current1  Data Line".format(i)].setData(self.time_dict["Time{0}".format(i)],self.curr1_data["Output 1 Curr{0}".format(i)])
+         self.curr2_data_line["PS{0} Current2  Data Line".format(i)].setData(self.time_dict["Time{0}".format(i)],self.curr2_data["Output 2 Curr{0}".format(i)])
 
          d2 = datetime.datetime.now().strftime("%d-%b-%Y %H:%M:%S")
          with open(self.PS_CSM_csvname, 'a') as csv_file:
@@ -489,17 +553,17 @@ class MyWindowPS(object):
          return
 
     def monitor_off(self,i):
-            self.IV_off = {}
-            self.worker.stop()
-            self.thread.quit()
-            self.thread.wait()
-            #self.OFF = PS_off()
-            print(self.identifier+"MONITOR OFF")
-            self.IV_off["PS{0} IV off".format(i)] = IV_meas(int(self.addr_list[i]),self.voltage1["Voltage{0}".format(i)],self.current1["Current{0}".format(i)]    ,self.voltage2["Voltage{0}".format(i)],self.current2["Current{0}".format(i)])
+            self.worker_dict["Worker{0}".format(i)].stop(int(i))
+            self.thread_dict["Thread{0}".format(i)].quit()
+            self.thread_dict["Thread{0}".format(i)].wait()
+            
+            print(self.identifier+ "PS" + str(i) + " MONITOR OFF")
+            self.IV_off["PS{0} IV off".format(i)]= IV_meas(int(self.addr["Address{0}".format(i)]),self.voltage1["Voltage{0}".format(i)],self.current1["Current{0}".format(i)]    ,self.voltage2["Voltage{0}".format(i)],self.current2["Current{0}".format(i)])                                                                                    #behaves the same with generalized code
             self.dict_dash_v["PS{0} Dash".format(i)].setText("%.5f"%(self.IV_off["PS{0} IV off".format(i)][0]))
-            self.dict_dash_v2["PS{0} Dash".format(i)].setText("%.5f"%( self.IV_off["PS{0} IV off".format(i)][1]))
-            self.dict_dash_c["PS{0} Dash".format(i)].setText("%.5f"%( self.IV_off["PS{0} IV off".format(i)][2]))
-            self.dict_dash_c2["PS{0} Dash".format(i)].setText("%.5f"%( self.IV_off["PS{0} IV off".format(i)][3]))    						#monitor off
+            self.dict_dash_v2["PS{0} Dash".format(i)].setText("%.5f"%(self.IV_off["PS{0} IV off".format(i)][1]))
+            self.dict_dash_c["PS{0} Dash".format(i)].setText("%.5f"%(self.IV_off["PS{0} IV off".format(i)][2]))
+            self.dict_dash_c2["PS{0} Dash".format(i)].setText("%.5f"%(self.IV_off["PS{0} IV off".format(i)][3]))    						#monitor off
+            
             with open(self.PS_CSM_txtname, "a") as f:
                 d3 = datetime.datetime.now().strftime("%d-%b-%Y %H:%M:%S")
                 f.write("%s %s" % (d3, "Power Supply OFF") + '\n')
