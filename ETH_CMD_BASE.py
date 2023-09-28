@@ -11,13 +11,13 @@ import binascii
 
 from socket import *
 
-def ethread(interface= 'enp2s0'):
+def ethread(interface= 'enp0s20f0u7'):
     s = socket(AF_PACKET, SOCK_RAW)
     s.bind((interface, 4))
     packet = binascii.hexlify(s.recv(150)).decode()
     return packet
 
-def sendeth(src, dst, eth_type, Command, payload, interface= 'enp2s0'):
+def sendeth(src, dst, eth_type, Command, payload, interface= 'enp0s20f0u7'):
     # """Send raw Ethernet packet on interface."""
 
     # assert (len(src) == len(dst) == 6)  # 48-bit ethernet addresses

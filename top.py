@@ -42,21 +42,54 @@ class MyWindow(QMainWindow):
         self.tab_powersup = QtWidgets.QWidget(self)
         self.tabWidget.addTab(self.tab_powersup, "Power Supply GUI")
 
-        # CSM
+        ''' # CSM
         self.tabCSM = QtWidgets.QTabWidget(self.tab_func)
         self.tabCSM.setGeometry(QtCore.QRect(20, 20, 1450, 950))
         self.CSM = QtWidgets.QWidget(self)
         self.tabCSM.addTab(self.CSM, "CSM Board")
-        self.eth = ETH_control("enp0s20f0u7")          #user input for ethernet?
+        self.eth = ETH_control("enp0s20f0u6")          #user input for ethernet?
         self.csmui = Ui_MainWindow(self.eth)
         self.csmui.setupUi(self.CSM, '1, ')
-
+        '''
         # Power Supply
         self.tabPS = QtWidgets.QTabWidget(self.tab_powersup)
         self.tabPS.setGeometry(QtCore.QRect(20, 20, 1450, 950))
 
         self.ps_tab_inst = MyWindowPS()
-        self.ps_tab_inst.initUI(self.tabPS, '3, ')			#Send information to 3rd incremented tab 
+        self.ps_tab_inst.initUI(self.tabPS, '3, ')		 
+        
+        ethernet_CSM1 = "enp0s20f0u7"                                   #INPUT ETHERNET ADDRESSES HERE!!!#
+        ethernet_CSM2 = "enp0s20f0u6"
+
+        self.tabCSM = QtWidgets.QTabWidget(self.tab_func)
+        self.tabCSM.setGeometry(QtCore.QRect(20, 20, 1450, 950))
+        self.CSM_b1 = QtWidgets.QWidget(self)
+        self.tabCSM.addTab(self.CSM_b1, "CSM Board 1")
+        self.eth1 = ETH_control(ethernet_CSM1)
+        self.csm1ui = Ui_MainWindow(self.eth1)
+        self.csm1ui.setupUi(self.CSM_b1, '1, ')
+        
+        self.eth_addr1_widget = QtWidgets.QWidget(self.CSM_b1)
+        self.eth_addr1_widget.setGeometry(QtCore.QRect(890, -2, 250, 150))
+        self.eth1_layout=QtWidgets.QVBoxLayout(self.eth_addr1_widget)
+
+        self.eth1_label = QtWidgets.QLabel(self.eth_addr1_widget)
+        self.eth1_label.setText("Ethernet Address: " + ethernet_CSM1)
+        self.eth1_layout.addWidget(self.eth1_label)
+
+        self.CSM_b2 = QtWidgets.QWidget(self)
+        self.tabCSM.addTab(self.CSM_b2, "CSM Board 2")
+        self.eth2 = ETH_control(ethernet_CSM2)
+        self.csm2ui = Ui_MainWindow(self.eth2)
+        self.csm2ui.setupUi(self.CSM_b2, '2, ')
+
+        self.eth_addr2_widget = QtWidgets.QWidget(self.CSM_b2)
+        self.eth_addr2_widget.setGeometry(QtCore.QRect(890, -2, 250, 150))
+        self.eth2_layout=QtWidgets.QVBoxLayout(self.eth_addr2_widget)
+
+        self.eth2_label = QtWidgets.QLabel(self.eth_addr2_widget)
+        self.eth2_label.setText("Ethernet Address: " + ethernet_CSM2)
+        self.eth2_layout.addWidget(self.eth2_label)
 
 
 # In[ ]:
@@ -68,9 +101,15 @@ class MyWindow(QMainWindow):
                     pass
                 elif text[21:24] == '1, ':
                     text = text[:21]+text[24:]+'\n'
-                    self.csmui.textBrowser.moveCursor(QtGui.QTextCursor.End)
-                    self.csmui.textBrowser.insertPlainText(text)
+                    self.csm1ui.textBrowser.moveCursor(QtGui.QTextCursor.End)
+                    self.csm1ui.textBrowser.insertPlainText(text)
                     self.logfile = open('lansce_beamrun_CSM.txt', 'a')
+                    self.logfile.write(text)
+                elif text[21:24] == '2, ':
+                    text = text[:21]+text[24:]+'\n'
+                    self.csm2ui.textBrowser.moveCursor(QtGui.QTextCursor.End)
+                    self.csm2ui.textBrowser.insertPlainText(text)
+                    self.logfile = open('lansce_beamrun_CSM2.txt', 'a')
                     self.logfile.write(text)
                 elif text[21:24] == '3, ':
                     text = text[:21] + text[24:] + '\n'
